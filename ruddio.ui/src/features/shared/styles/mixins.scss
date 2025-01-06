@@ -1,0 +1,132 @@
+// Flexbox mixins
+@mixin flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@mixin flex-space-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+@mixin flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+@mixin flex-column-reverse {
+  display: flex;
+  flex-direction: column-reverse;
+}
+
+@mixin flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+@mixin flex-wrap {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+@mixin flex-align($align: center) {
+  display: flex;
+  align-items: $align;
+}
+
+@mixin flex-justify($justify: center) {
+  display: flex;
+  justify-content: $justify;
+}
+
+@mixin transition($property: all, $time: 0.2s, $easing: ease-in-out) {
+  transition: $property $time $easing;
+}
+
+@mixin smoothAppearance($transitionTime: 0.2s) {
+  @include transition(opacity, $transitionTime, ease-out);
+  opacity: 0;
+  visibility: hidden;
+
+  &.visible {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+// Typography
+@mixin large-title(
+  $color: var(--color-title),
+  $text-align: center,
+  $line-height: normal
+) {
+  font-size: 48px;
+  font-weight: bold;
+  text-align: $text-align;
+  color: $color;
+  text-transform: uppercase;
+  line-height: $line-height;
+  font-family: var(--font-family-second);
+
+  @include responsive($mobile: true) {
+    font-size: 32px;
+    line-height: normal;
+  }
+}
+
+@mixin subtitle($color: var(--color-subtitle), $text-align: center) {
+  font-size: 24px;
+  font-weight: normal;
+  text-align: $text-align;
+  color: $color;
+
+  @include responsive($mobile: true) {
+    font-size: 16px;
+  }
+}
+
+@mixin link($font-size: 14px, $font-weight: 400) {
+  @include transition();
+  font-size: $font-size;
+  color: var(--color-link-text);
+  font-weight: $font-weight;
+  text-decoration: underline;
+
+  &:hover {
+    color: var(--color-link-text-hover);
+  }
+}
+
+@mixin textTrim($line-count: 1) {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-line-clamp: $line-count;
+}
+
+// Common
+@mixin main-content-container {
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--main-container-padding);
+  padding-right: var(--main-container-padding);
+  width: 100%;
+  max-width: var(--main-container-max-width);
+}
+
+@mixin responsive($mobile: false, $tablet: false) {
+  @if $mobile {
+    @media (max-width: 767px) {
+      @content;
+    }
+  }
+
+  @if $tablet {
+    @media (min-width: 768px) and (max-width: 1023px) {
+      @content;
+    }
+  }
+}

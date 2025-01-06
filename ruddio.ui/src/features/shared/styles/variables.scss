@@ -1,0 +1,114 @@
+:root {
+  --main-container-padding: 16px;
+  --main-container-max-width: calc(
+    1110px + (var(--main-container-padding) * 2)
+  );
+  --main-border-radius: 8px;
+  --header-height: 82px;
+
+  --font-family-second: "D-DIN Exp", sans-serif;
+
+  --color-white: #ffffff;
+  --color-white-2: #fbfdff;
+  --color-black: #000000;
+  --color-black-2: #18191f;
+  --color-dark-blue: #041122;
+  --color-dark-blue-2: #052745;
+  --color-blue: #063e69;
+  --color-blue-2: #2c6fa4;
+  --color-light-blue: #ebf0f5;
+  --color-light-blue-2: #d1dfedcc;
+  --color-grey: #bdc3cb;
+  --color-grey-2: #898c96;
+  --color-grey-3: #474a57;
+  --color-red: #d7503d;
+
+  // Box shadow
+  --box-shadow: 0px 0px 20px 0px var(--color-light-blue-2);
+
+  // Borders
+  --color-border-accent: var(--color-dark-blue-2);
+
+  // Backgrounds
+  --accent-background: var(--color-black);
+  --color-background-modal: var(--color-white-2);
+
+  // Icons
+  --color-icon: var(--color-dark-blue-2);
+  --color-icon-background: var(--color-light-blue);
+  --color-icon-background-2: var(--color-dark-blue-2);
+
+  // Filled Primary button
+  --color-filled-btn-primary-gradient: var(--color-dark-blue);
+  --color-filled-btn-primary-gradient-light: var(--color-blue);
+  --color-filled-btn-primary-gradient-hover: var(--color-light-blue);
+  --color-filled-btn-primary-text: var(--color-white);
+  --color-filled-btn-primary-text-hover: var(--color-dark-blue-2);
+  --color-filled-btn-primary-text-disabled: var(--color-grey);
+
+  // Filled Secondary button
+  --color-filled-btn-secondary-gradient: var(--color-dark-blue);
+  --color-filled-btn-secondary-gradient-light: var(--color-blue);
+  --color-filled-btn-secondary-gradient-hover: var(--color-light-blue);
+  --color-filled-btn-secondary-text: var(--color-dark-blue-2);
+  --color-filled-btn-secondary-text-hover: var(--color-white);
+  --color-filled-btn-secondary-text-disabled: var(--color-grey);
+
+  // Outlined button
+  --color-outlined-btn-border: var(--color-dark-blue-2);
+  --color-outlined-btn-text: var(--color-dark-blue-2);
+  --color-outlined-btn-border-hover: var(--color-blue-2);
+  --color-outlined-btn-text-hover: var(--color-blue-2);
+  --color-outlined-btn-border-disabled: var(--color-grey);
+  --color-outlined-btn-text-disabled: var(--color-grey);
+
+  // Icon button
+  --color-icon-btn-gradient: var(--color-dark-blue);
+  --color-icon-btn-gradient-light: var(--color-blue);
+  --color-icon-btn-gradient-hover: var(--color-light-blue);
+  --color-icon-btn-text: var(--color-dark-blue-2);
+  --color-icon-btn-text-hover: var(--color-white);
+  --color-icon-btn-text-disabled: var(--color-grey);
+
+  // Inputs
+  --color-input-label: var(--color-black-2);
+  --color-input-note: var(--color-grey-2);
+  --color-input-background: var(--color-light-blue);
+  --color-input-border: var(--color-light-blue);
+  --color-input-border-hover: var(--color-black-2);
+  --color-input-border-focus: var(--color-black-2);
+  --color-input-text: var(--color-black-2);
+  --color-input-placeholder: var(--color-grey-2);
+  --color-input-icon: var(--color-black-2);
+  --color-input-icon-hover: var(--color-black-2);
+  --color-input-error: var(--color-red);
+  --color-input-disabled: var(--color-grey);
+
+  // Typography
+  --color-title: var(--color-dark-blue-2);
+  --color-title-2: var(--color-white);
+  --color-subtitle: var(--color-black-2);
+  --color-subtitle-2: var(--color-white);
+  --color-additional-text: var(--color-grey-3);
+  --color-accent-text: var(--color-blue-2);
+  --color-link-text: var(--color-black-2);
+  --color-link-text-hover: var(--color-blue-2);
+
+  // Labels
+  --color-label-primary-background: var(--color-dark-blue);
+  --color-label-primary-background-2: var(--color-blue);
+  --color-label-primary-text: var(--color-white);
+
+  --color-label-secondary-background: var(--color-light-blue);
+  --color-label-secondary-text: var(--color-dark-blue-2);
+
+  --color-label-outlined-border: var(--color-dark-blue-2);
+  --color-label-outlined-text: var(--color-dark-blue-2);
+
+  --color-label-outlined-secondary-border: var(--color-white);
+  --color-label-outlined-secondary-text: var(--color-white);
+
+  // Tag
+  --color-tag-text: var(--color-dark-blue-2);
+  --color-tag-text-hover: var(--color-blue-2);
+}
