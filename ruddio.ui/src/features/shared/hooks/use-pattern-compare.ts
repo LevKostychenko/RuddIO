@@ -1,17 +1,6 @@
 import { Point } from "../types";
 
 export const usePatternCompare = () => {
-  const normalizePatternCoordinates = (
-    pattern: Point[],
-    width: number,
-    height: number
-  ): Point[] => {
-    return pattern.map((point) => ({
-      x: point.x / width,
-      y: point.y / height,
-    }));
-  };
-
   const normalizePattern = (pattern: Point[]): Point[] => {
     if (pattern.length === 0) return pattern;
 
@@ -40,14 +29,14 @@ export const usePatternCompare = () => {
   };
 
   const comparePatterns = (
-    normalizedPattern1: Point[],
-    normalizedPattern2: Point[],
+    pattern1: Point[],
+    pattern2: Point[],
     threshold: number = 0.3
   ): boolean => {
-    normalizedPattern1 = normalizePattern(normalizedPattern1);
-    normalizedPattern2 = normalizePattern(normalizedPattern2);
+    pattern1 = normalizePattern(pattern1);
+    pattern2 = normalizePattern(pattern2);
 
-    const distance = hausdorffDistance(normalizedPattern1, normalizedPattern2);
+    const distance = hausdorffDistance(pattern1, pattern2);
     console.log(distance);
     return distance < threshold;
   };
@@ -69,6 +58,5 @@ export const usePatternCompare = () => {
 
   return {
     comparePatterns,
-    normalizePatternCoordinates,
   };
 };

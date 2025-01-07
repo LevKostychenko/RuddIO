@@ -6,19 +6,12 @@ import { Point } from "@/features/shared/types";
 
 export const ChatLayout = () => {
   const { pattern } = usePatternTracker();
-  const { normalizePatternCoordinates, comparePatterns } = usePatternCompare();
+  const { comparePatterns } = usePatternCompare();
   const [origPatten, setPattern] = useState<Point[]>([]);
 
   useEffect(() => {
     if (origPatten.length && pattern.length > 1) {
-      const width = window.innerWidth;
-      const height = window.innerHeight;
-      const normalizedPattern = normalizePatternCoordinates(
-        pattern,
-        width,
-        height
-      );
-      const isEqual = comparePatterns(origPatten, normalizedPattern);
+      const isEqual = comparePatterns(origPatten, pattern);
       console.log(isEqual);
     }
   }, [pattern]);

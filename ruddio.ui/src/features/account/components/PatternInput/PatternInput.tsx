@@ -1,4 +1,3 @@
-import { usePatternCompare } from "@/features/shared/hooks";
 import { Point } from "@/features/shared/types";
 import React, { useState, useRef, useEffect } from "react";
 
@@ -10,7 +9,6 @@ export const PatternInput = ({ onPatternComplete }: IPatternInputProps) => {
   const [isDrawing, setIsDrawing] = useState(false);
   const [pattern, setPattern] = useState<Point[]>([]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { normalizePatternCoordinates } = usePatternCompare();
 
   const canvasWidth = 500;
   const canvasHeight = 500;
@@ -51,13 +49,7 @@ export const PatternInput = ({ onPatternComplete }: IPatternInputProps) => {
 
   const stopDrawing = () => {
     setIsDrawing(false);
-
-    const normalizedPattern = normalizePatternCoordinates(
-      pattern,
-      canvasWidth,
-      canvasHeight
-    );
-    onPatternComplete(normalizedPattern);
+    onPatternComplete(pattern);
   };
 
   const getRelativeCoordinates = (
