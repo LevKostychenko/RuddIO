@@ -107,7 +107,6 @@ namespace RuddIO.Server.Auth.Services
 
         private async Task<byte[]> EncryptDataAsync(string data, byte[] key)
         {
-            var dataJson = JsonSerializer.Serialize(data);
             using var aes = Aes.Create();
             aes.Key = key;
             aes.GenerateIV();
@@ -118,7 +117,7 @@ namespace RuddIO.Server.Auth.Services
             {
                 ms.Write(aes.IV, 0, aes.IV.Length);
                 await using var sw = new StreamWriter(cryptoStream);
-                sw.Write(dataJson);
+                sw.Write(data);
             }
 
             return ms.ToArray();

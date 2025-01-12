@@ -30,7 +30,7 @@ namespace RuddIO.Server.Auth.Services
             try
             {
                 var user = (await db.Users.SingleOrDefaultAsync(
-                    u => string.Equals(u.UserName, username, StringComparison.InvariantCultureIgnoreCase))) ?? throw new Exception();
+                    u => EF.Functions.Like(u.UserName, username))) ?? throw new Exception();
 
                 var oldRecoveryKey = await cryptoService.DecryptRecoveryKeyAsync(recoveryKey, user.PasswordHash, secretPhrase);
                 if (oldRecoveryKey != null && oldRecoveryKey.Id == user.Id && oldRecoveryKey.Stemp == user.KeyStemp.ToString())
@@ -73,6 +73,7 @@ namespace RuddIO.Server.Auth.Services
             {
                 var key = await cryptoService.GenerateUserKeyAsync(password, user.Id, user.KeyStemp.ToString());
                 var recoveryKey = await cryptoService.GenerateRecoveryKeyAsync(user.Id, passwordHash, secretPhrase, user.KeyStemp.ToString());
+                await db.Database.CommitTransactionAsync();
                 return (recoveryKey, key);
             }
             catch
