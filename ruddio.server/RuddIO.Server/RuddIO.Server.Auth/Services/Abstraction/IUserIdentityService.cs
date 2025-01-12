@@ -2,8 +2,8 @@
 {
     public interface IUserIdentityService
     {
-        Task<Stream> RecoverUserKeyAsync(string recoveryKey, string newPassword);
-        Task<Stream> RegisterUserAsync(string username, string password);
+        Task<(string recoveryKey, byte[] key)> RecoverUserKeyAsync(string recoveryKey, string newPassword, string username, string secretPhrase);
+        Task<(string recoveryKey, byte[] key)> RegisterUserAsync(string username, string password, string secretPhrase);
         Task<string> LoginUserAsync(Stream key, string password);
         bool ValidatePassword(string password);
         bool ValidateUsername(string username);

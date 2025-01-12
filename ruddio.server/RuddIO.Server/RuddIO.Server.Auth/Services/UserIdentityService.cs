@@ -1,4 +1,5 @@
-﻿using RuddIO.Server.Auth.Services.Abstraction;
+﻿using Microsoft.EntityFrameworkCore;
+using RuddIO.Server.Auth.Services.Abstraction;
 using RuddIO.Server.DB;
 using RuddIO.Server.SDK.Models;
 
@@ -24,16 +25,44 @@ namespace RuddIO.Server.Auth.Services
             }
         }
 
-        public Task<Stream> RecoverUserKeyAsync(string recoveryKey, string newPassword)
+        public async Task<(string recoveryKey, byte[] key)> RecoverUserKeyAsync(string recoveryKey, string newPassword, string username, string secretPhrase)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var user = (await db.Users.SingleOrDefaultAsync(
+                    u => string.Equals(u.UserName, username, StringComparison.InvariantCultureIgnoreCase))) ?? throw new Exception();
+
+                var oldRecoveryKey = await cryptoService.DecryptRecoveryKeyAsync(recoveryKey, user.PasswordHash, secretPhrase);
+                if (oldRecoveryKey != null && oldRecoveryKey.Id == user.Id && oldRecoveryKey.Stemp == user.KeyStemp.ToString())
+                {
+                    var newPasswordHash = cryptoService.GetPaswordHash(newPassword);
+                    user.KeyStemp = Guid.NewGuid();
+                    user.PasswordHash = newPasswordHash;
+
+                    var key = await cryptoService.GenerateUserKeyAsync(newPassword, user.Id, user.KeyStemp.ToString());
+                    var newRecoveryKey = await cryptoService.GenerateRecoveryKeyAsync(user.Id, newPasswordHash, secretPhrase, user.KeyStemp.ToString());
+
+                    await db.SaveChangesAsync();
+
+                    return (newRecoveryKey, key);
+                }
+
+                throw new Exception();
+            }
+            catch
+            {
+                throw;
+            }
         }
 
-        public async Task<Stream> RegisterUserAsync(string username, string password)
+        public async Task<(string recoveryKey, byte[] key)> RegisterUserAsync(string username, string password, string secretPhrase)
         {
+            var passwordHash = cryptoService.GetPaswordHash(password);
             var user = new User
             {
-                UserName = username
+                UserName = username,
+                PasswordHash = passwordHash,
+                KeyStemp = Guid.NewGuid(),
             };
 
             await db.Database.BeginTransactionAsync();
@@ -42,8 +71,9 @@ namespace RuddIO.Server.Auth.Services
 
             try
             {
-                var key = await cryptoService.GenerateUserKeyAsync(password, user.Id);
-                return await BytesToStreamAsync(key);
+                var key = await cryptoService.GenerateUserKeyAsync(password, user.Id, user.KeyStemp.ToString());
+                var recoveryKey = await cryptoService.GenerateRecoveryKeyAsync(user.Id, passwordHash, secretPhrase, user.KeyStemp.ToString());
+                return (recoveryKey, key);
             }
             catch
             {
@@ -70,15 +100,6 @@ namespace RuddIO.Server.Auth.Services
                 bytes = binaryReader.ReadBytes((int)stream.Length);
             }
             return bytes;
-        }
-
-        private async Task<Stream> BytesToStreamAsync(byte[] bytes)
-        {
-            await using (var fs = new FileStream("ruddio-key", FileMode.Create, FileAccess.Write))
-            {
-                await fs.WriteAsync(bytes, 0, bytes.Length);
-                return fs;
-            }
         }
     }
 }

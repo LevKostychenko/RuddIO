@@ -8,15 +8,22 @@ namespace RuddIO.Server.Auth.Controllers
     [Route("[controller]/[action]")]
     public class IdentityService(IUserIdentityService identityService) : ControllerBase
     {
-        [HttpPost("Register")]
+        [HttpPost]
         [AllowAnonymous]
         public async Task<IActionResult> Register(string password, string username)
         {
-            var stream = await identityService.RegisterUserAsync(username, password);
-            return File(stream, "application/octet-stream");
+            var (recoveryKey, key) = await identityService.RegisterUserAsync(username, password);
+            var keyBase64 = Convert.ToBase64String(key);
+
+            return Ok(new
+            {
+                RecoveryKey = recoveryKey,
+                KeyFile = keyBase64,
+                FileName = $"key_{username}"
+            });
         }
 
-        [HttpPost("Login")]
+        [HttpPost]
         [AllowAnonymous]
         public async Task<IActionResult> Login([FromForm] string password, IFormFile keyFile)
         {

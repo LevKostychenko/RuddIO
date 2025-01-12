@@ -8,7 +8,7 @@ namespace RuddIO.Server.Auth.Services
 {
     public class UserCryptoService(byte saltSize, int keyGeneratorIterations, byte keySize) : IUserCryptoService
     {
-        public async Task<byte[]> GenerateUserKeyAsync(string password, Guid userId)
+        public async Task<byte[]> GenerateUserKeyAsync(string password, Guid userId, string keyStemp)
         {
             var salt = GenerateSalt();
             var key = DeriveKey(password, salt);
@@ -17,8 +17,10 @@ namespace RuddIO.Server.Auth.Services
             {
                 Id = userId,
                 TimeStamp = DateTime.UtcNow,
+                Stemp = keyStemp
             };
-            var encryptedData = await EncryptDataAsync(userData, key);
+            var dataJson = JsonSerializer.Serialize(userData);
+            var encryptedData = await EncryptDataAsync(dataJson, key);
 
             var fileData = new byte[salt.Length + encryptedData.Length];
             Buffer.BlockCopy(salt, 0, fileData, 0, salt.Length);
@@ -35,30 +37,33 @@ namespace RuddIO.Server.Auth.Services
             Buffer.BlockCopy(fileData, saltSize, encryptedData, 0, encryptedData.Length);
 
             var key = DeriveKey(password, salt);
-            return await DecryptDataAsync(encryptedData, key);
+            var json = await DecryptDataAsync(encryptedData, key);
+
+            return JsonSerializer.Deserialize<UserKeyContent>(json);
         }
 
-        private string HashRecoveryKey(string recoveryKey)
+        public async Task<string> GenerateRecoveryKeyAsync(Guid userId, string passwordHash, string secretPhrase, string keyStemp)
         {
-            using var sha256 = SHA256.Create();
-            var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(recoveryKey));
-            return Convert.ToBase64String(hash);
-        }
-
-        public async Task<string> GenerateRecoveryKeyAsync(Guid userId)
-        {
-            var recoveryData = new UserKeyContent
+            var userData = new UserKeyContent
             {
                 Id = userId,
-                TimeStamp = DateTime.UtcNow
+                TimeStamp = DateTime.UtcNow,
+                Stemp = keyStemp,
             };
-
-            var recoveryKey = GenerateSecureRandomKey();
-            var recoveryKeyBytes = Encoding.UTF8.GetBytes(recoveryKey);
-
-            var encryptedRecoveryKey = await EncryptDataAsync(recoveryData, recoveryKeyBytes);
+            var dataJson = JsonSerializer.Serialize(userData);
+            var encryptionKey = GenerateEncryptionKey(passwordHash, secretPhrase);
+            var encryptedRecoveryKey = await EncryptDataAsync(dataJson, encryptionKey);
 
             return Convert.ToBase64String(encryptedRecoveryKey);
+        }
+
+        public async Task<UserKeyContent> DecryptRecoveryKeyAsync(string encryptedRecoveryKeyBase64, string passwordHash, string secretPhrase)
+        {
+            var encryptedRecoveryKey = Convert.FromBase64String(encryptedRecoveryKeyBase64);
+            var decryptionKey = GenerateEncryptionKey(passwordHash, secretPhrase);
+            var json = await DecryptDataAsync(encryptedRecoveryKey, decryptionKey);
+
+            return JsonSerializer.Deserialize<UserKeyContent>(json);
         }
 
         public string GetPaswordHash(string password)
@@ -68,33 +73,18 @@ namespace RuddIO.Server.Auth.Services
             return $"{Convert.ToBase64String(salt)}:{Convert.ToBase64String(hash)}";
         }
 
-        public bool VerifyPassword(string password, string storedHash)
-        {
-            var parts = storedHash.Split(':');
-            if (parts.Length != 2)
-            {
-                throw new FormatException("Invalid hash format.");
-            }
-
-            var salt = Convert.FromBase64String(parts[0]);
-            var hash = Convert.FromBase64String(parts[1]);
-
-            using var pbkdf2 = new Rfc2898DeriveBytes(password, salt, keyGeneratorIterations, HashAlgorithmName.SHA256);
-            var computedHash = pbkdf2.GetBytes(keySize);
-
-            return CryptographicOperations.FixedTimeEquals(computedHash, hash);
-        }
-
         protected virtual byte[] GenerateSalt()
         {
             var salt = GenerateRandomBytes(saltSize);
             return salt;
         }
 
-        private string GenerateSecureRandomKey()
+        private byte[] GenerateEncryptionKey(string password, string secretPhrase, int keySize = 32)
         {
-            var bytes = GenerateRandomBytes(32);
-            return Convert.ToBase64String(bytes);
+            var combined = Encoding.UTF8.GetBytes(secretPhrase + password);
+
+            var hash = SHA256.HashData(combined);
+            return hash.Take(keySize).ToArray();
         }
 
         private byte[] GenerateRandomBytes(byte length)
@@ -115,14 +105,14 @@ namespace RuddIO.Server.Auth.Services
             return pbkdf2.GetBytes(keySize);
         }
 
-        private async Task<byte[]> EncryptDataAsync(object data, byte[] key)
+        private async Task<byte[]> EncryptDataAsync(string data, byte[] key)
         {
             var dataJson = JsonSerializer.Serialize(data);
             using var aes = Aes.Create();
             aes.Key = key;
             aes.GenerateIV();
 
-            using var encryptor = aes.CreateDecryptor();
+            using var encryptor = aes.CreateEncryptor();
             await using var ms = new MemoryStream();
             await using (var cryptoStream = new CryptoStream(ms, encryptor, CryptoStreamMode.Write))
             {
@@ -134,7 +124,7 @@ namespace RuddIO.Server.Auth.Services
             return ms.ToArray();
         }
 
-        private async Task<UserKeyContent> DecryptDataAsync(byte[] encryptedData, byte[] key)
+        private async Task<string> DecryptDataAsync(byte[] encryptedData, byte[] key)
         {
             using var aes = Aes.Create();
             aes.Key = key;
@@ -147,9 +137,7 @@ namespace RuddIO.Server.Auth.Services
             using var decryptor = aes.CreateDecryptor();
             await using var cryptoStream = new CryptoStream(ms, decryptor, CryptoStreamMode.Read);
             using var sr = new StreamReader(cryptoStream);
-            var json = sr.ReadToEnd();
-
-            return JsonSerializer.Deserialize<UserKeyContent>(json);
+            return sr.ReadToEnd();
         }
     }
 }
