@@ -7,15 +7,25 @@ namespace RuddIO.Server.Auth.Controllers
 {
     [ApiController]
     [Route("[controller]/[action]")]
-    public class IdentityService(IUserIdentityService identityService) : ControllerBase
+    public class IdentityController(IUserIdentityService identityService) : ControllerBase
     {
         [HttpPost]
         [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] Registration registration)
         {
+            if (!identityService.ValidatePassword(registration.Password))
+            {
+                return BadRequest("password");
+            }
+
+            if (!await identityService.ValidateUsernameAsync(registration.Username))
+            {
+                return BadRequest("username");
+            }
+
             var (recoveryKey, key) = await identityService.RegisterUserAsync(
-                registration.Username, 
-                registration.Password, 
+                registration.Username,
+                registration.Password,
                 registration.SecretPhrase);
             var keyBase64 = Convert.ToBase64String(key);
 
@@ -40,9 +50,9 @@ namespace RuddIO.Server.Auth.Controllers
         public async Task<IActionResult> RecoverUser([FromBody] Recovery recovery)
         {
             var (newRecoveryKey, newKey) = await identityService.RecoverUserKeyAsync(
-                recovery.RecoveryKey, 
-                recovery.NewPassword, 
-                recovery.Username, 
+                recovery.RecoveryKey,
+                recovery.NewPassword,
+                recovery.Username,
                 recovery.SecretPhrase);
             var keyBase64 = Convert.ToBase64String(newKey);
 

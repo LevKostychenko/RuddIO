@@ -2,22 +2,29 @@
 using RuddIO.Server.Auth.Services.Abstraction;
 using RuddIO.Server.DB;
 using RuddIO.Server.SDK.Models;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using RuddIO.Server.SDK.Models.DTO;
+using Microsoft.Extensions.Options;
+using RuddIO.Server.Auth.Models;
 
 namespace RuddIO.Server.Auth.Services
 {
-    public class UserIdentityService(IUserCryptoService cryptoService, RuddIODbContext db) : IUserIdentityService
+    public class UserIdentityService(
+        IUserCryptoService cryptoService, 
+        RuddIODbContext db,
+        ITokenService tokenService,
+        IOptions<JwtTokenOptions> tokenOptions,
+        ICredentialsValidator validator) : IUserIdentityService
     {
-        public async Task<string> LoginUserAsync(Stream key, string password)
+        public async Task<TokenPair> LoginUserAsync(Stream key, string password)
         {
             try
             {
-                var userKeyContent = await cryptoService.DecryptUserKeyAsync(StreamToBytes(key), password);
-                if (userKeyContent == null)
-                {
-                    throw new Exception();
-                }
+                var userKeyContent = await cryptoService.DecryptUserKeyAsync(StreamToBytes(key), password) ?? throw new Exception();
+                var user = await db.Users.FindAsync(userKeyContent.Id);
 
-                return userKeyContent.Id.ToString();
+                return user == null ? throw new Exception() : await AuthenticateAsync(user);
             }
             catch (Exception ex)
             {
@@ -29,8 +36,7 @@ namespace RuddIO.Server.Auth.Services
         {
             try
             {
-                var user = (await db.Users.SingleOrDefaultAsync(
-                    u => EF.Functions.Like(u.UserName, username))) ?? throw new Exception();
+                var user = (await db.Users.SingleOrDefaultAsync(u => u.UserName == username)) ?? throw new Exception();
 
                 var oldRecoveryKey = await cryptoService.DecryptRecoveryKeyAsync(recoveryKey, user.PasswordHash, secretPhrase);
                 if (oldRecoveryKey != null && oldRecoveryKey.Id == user.Id && oldRecoveryKey.Stemp == user.KeyStemp.ToString())
@@ -83,17 +89,18 @@ namespace RuddIO.Server.Auth.Services
             }
         }
 
-        public bool ValidateUsername(string username)
+        public async Task<bool> ValidateUsernameAsync(string username)
         {
-            throw new NotImplementedException();
+            return !await db.Users.AnyAsync(u => u.UserName == username)
+                && validator.ValidateUsername(username);
         }
 
         public bool ValidatePassword(string password)
         {
-            throw new NotImplementedException();
+            return validator.ValidatePassword(password);
         }
 
-        private byte[] StreamToBytes(Stream stream)
+        private static byte[] StreamToBytes(Stream stream)
         {
             byte[] bytes;
             using (var binaryReader = new BinaryReader(stream))
@@ -101,6 +108,30 @@ namespace RuddIO.Server.Auth.Services
                 bytes = binaryReader.ReadBytes((int)stream.Length);
             }
             return bytes;
+        }
+
+        private async Task<TokenPair> AuthenticateAsync(User user)
+        {
+            var authClaims = new List<Claim>
+            {
+                new(ClaimTypes.Actor, user.Id.ToString()),
+                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            };
+       
+            var token = tokenService.CreateAccessToken(authClaims);
+            var refreshToken = tokenService.GenerateRefreshToken();
+
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(tokenOptions.Value.RefreshTokenExpireDays);
+
+            await db.SaveChangesAsync();
+            return new TokenPair
+            {
+                AccessToken = new JwtSecurityTokenHandler().WriteToken(token),
+                RefreshToken = refreshToken,
+                AccessTokenExpiration = token.ValidTo,
+                RefreshTokenExpiration = user.RefreshTokenExpiryTime
+            };
         }
     }
 }

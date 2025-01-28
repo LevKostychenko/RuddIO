@@ -23,51 +23,7 @@ class BaseServiceContext {
   }
 }
 
-class ArticlesServiceContext extends BaseServiceContext {
-  public articles(config?: CreateAxiosDefaults): ApiService {
-    return super.makeService("articles", {
-      baseURL: CONFIG.ARTICLES_API_URL,
-      ...config,
-    });
-  }
-
-  public tags(config?: CreateAxiosDefaults): ApiService {
-    return super.makeService("tags", {
-      baseURL: CONFIG.ARTICLES_API_URL,
-      ...config,
-    });
-  }
-
-  public getService(
-    endpoint: string,
-    config?: CreateAxiosDefaults
-  ): ApiService {
-    return super.getServiceBase(endpoint, CONFIG.ARTICLES_API_URL, config);
-  }
-}
-
 class IdentityServiceContext extends BaseServiceContext {
-  public companies(config?: CreateAxiosDefaults): ApiService {
-    return this.makeService("companies", {
-      baseURL: CONFIG.IDENTITY_API_URL,
-      ...config,
-    });
-  }
-
-  public specialists(config?: CreateAxiosDefaults): ApiService {
-    return this.makeService("specialists", {
-      baseURL: CONFIG.IDENTITY_API_URL,
-      ...config,
-    });
-  }
-
-  public profiles(config?: CreateAxiosDefaults): ApiService {
-    return this.makeService("profiles", {
-      baseURL: CONFIG.IDENTITY_API_URL,
-      ...config,
-    });
-  }
-
   public specialistApplications(config?: CreateAxiosDefaults): ApiService {
     return this.makeService("specialistApplications", {
       baseURL: CONFIG.IDENTITY_API_URL,
@@ -83,33 +39,9 @@ class IdentityServiceContext extends BaseServiceContext {
   }
 }
 
-class UsersServiceContext extends BaseServiceContext {
-  public authors(config?: CreateAxiosDefaults): ApiService {
-    return super.makeService("authors", {
-      baseURL: CONFIG.USERS_API_URL,
-      ...config,
-    });
-  }
-
-  public getService(
-    endpoint: string,
-    config?: CreateAxiosDefaults
-  ): ApiService {
-    return super.getServiceBase(endpoint, CONFIG.USERS_API_URL, config);
-  }
-}
-
 export default class ApiContext {
-  public articles(): ArticlesServiceContext {
-    return new ArticlesServiceContext();
-  }
-
   public identity(): IdentityServiceContext {
     return new IdentityServiceContext();
-  }
-
-  public users(): UsersServiceContext {
-    return new UsersServiceContext();
   }
 }
 
