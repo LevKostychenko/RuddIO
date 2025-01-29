@@ -29,8 +29,9 @@ namespace RuddIO.Server.Auth.Services
             return fileData;
         }
 
-        public async Task<UserKeyContent> DecryptUserKeyAsync(byte[] fileData, string password)
+        public async Task<UserKeyContent> DecryptUserKeyAsync(string base64File, string password)
         {
+            var fileData = Convert.FromBase64String(base64File);
             var salt = new byte[saltSize];
             var encryptedData = new byte[fileData.Length - saltSize];
             Buffer.BlockCopy(fileData, 0, salt, 0, saltSize);

@@ -21,7 +21,7 @@ namespace RuddIO.Server.Auth.Services
         {
             try
             {
-                var userKeyContent = await cryptoService.DecryptUserKeyAsync(StreamToBytes(key), password) ?? throw new Exception();
+                var userKeyContent = await cryptoService.DecryptUserKeyAsync(StreamToBase64(key), password) ?? throw new Exception();
                 var user = await db.Users.FindAsync(userKeyContent.Id);
 
                 return user == null ? throw new Exception() : await AuthenticateAsync(user);
@@ -108,6 +108,12 @@ namespace RuddIO.Server.Auth.Services
                 bytes = binaryReader.ReadBytes((int)stream.Length);
             }
             return bytes;
+        }
+
+        private static string StreamToBase64(Stream stream)
+        {
+            using var reader = new StreamReader(stream);
+            return reader.ReadToEnd();
         }
 
         private async Task<TokenPair> AuthenticateAsync(User user)

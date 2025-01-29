@@ -1,13 +1,16 @@
 import {
   Box,
   Button,
+  Fab,
   FormControl,
   FormLabel,
+  LinearProgress,
   TextField,
   Typography,
 } from "@mui/material";
 import styles from "./Register.module.scss";
 import classnames from "classnames";
+import SaveIcon from "@mui/icons-material/Save";
 import { useAuthentication } from "../../hooks";
 
 export const Register = () => {
@@ -22,6 +25,9 @@ export const Register = () => {
     passPhraseError,
     setRepeatPassword,
     repeatPasswordError,
+    isRequesting,
+    onFileDownloadClick,
+    response,
   } = useAuthentication();
 
   return (
@@ -38,7 +44,7 @@ export const Register = () => {
         </div>
         <Box
           component="form"
-          //   onSubmit={handleSubmit}
+          onSubmit={onRegisterClick}
           sx={{ display: "flex", flexDirection: "column", gap: 2 }}
         >
           <FormControl>
@@ -120,9 +126,35 @@ export const Register = () => {
             fullWidth
             variant="contained"
             onClick={onRegisterClick}
+            disabled={isRequesting}
           >
             Sign up
           </Button>
+          {isRequesting && <LinearProgress />}
+          {!!response && (
+            <Box>
+              <Box>
+                <Fab
+                  aria-label="save"
+                  color="primary"
+                  onClick={() => onFileDownloadClick("key")}
+                >
+                  Key
+                  <SaveIcon />
+                </Fab>
+              </Box>
+              <Box>
+                <Fab
+                  aria-label="save"
+                  color="primary"
+                  onClick={() => onFileDownloadClick("recovery")}
+                >
+                  Recovery Key
+                  <SaveIcon />
+                </Fab>
+              </Box>
+            </Box>
+          )}
         </Box>
       </div>
     </div>

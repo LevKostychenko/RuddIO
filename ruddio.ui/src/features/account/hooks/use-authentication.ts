@@ -1,5 +1,6 @@
 import ApiContext from "@/features/shared/services/api-context";
 import { useEffect, useMemo, useState } from "react";
+import { RegisterResponse } from "../types";
 
 export const useAuthentication = () => {
   const [password, setPassword] = useState("");
@@ -11,6 +12,11 @@ export const useAuthentication = () => {
   const [passPhraseError, setPassPhraseError] = useState("");
   const [usernameError, setUsernameError] = useState("");
   const [submitClicked, setSubmitClicked] = useState(false);
+
+  const [isRequesting, setIsRequesting] = useState(false);
+  const [response, setResponse] = useState<RegisterResponse | undefined>(
+    undefined
+  );
 
   const usernameRules = [/^[a-zA-Z0-9]+$/, /^.{2,16}$/];
   const passwordRules = [/^.{8,}$/, /[A-Za-z]/, /\d/, /[^\w\s]/];
@@ -79,6 +85,25 @@ export const useAuthentication = () => {
     }
   }, [isPassphraseValid, passPhrase]);
 
+  const onFileDownloadClick = (file: "key" | "recovery") => {
+    if (response) {
+      const blob = new Blob(
+        [file === "key" ? response?.keyFile : response?.recoveryKey],
+        { type: "text/plain" }
+      );
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${response.fileName}_${file === "key" ? "" : "recovery"}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      URL.revokeObjectURL(url);
+    }
+  };
+
   const onRegisterClick = () => {
     setSubmitClicked(true);
 
@@ -86,14 +111,25 @@ export const useAuthentication = () => {
       isPasswordValid &&
       isRepeatPasswordValid &&
       isUsernameValid &&
-      isPasswordValid
+      isPasswordValid &&
+      !isRequesting
     ) {
-      // TODO: replace with redux
-      new ApiContext().identity().getService("register").post({
-        password: password,
-        username: username,
-        secretPhrase: passPhrase,
-      });
+      setResponse(undefined);
+      setIsRequesting(true);
+      new ApiContext()
+        .identity()
+        .getService("register")
+        .post({
+          password: password,
+          username: username,
+          secretPhrase: passPhrase,
+        })
+        .then((response) => {
+          if (response.data) {
+            setResponse(response.data);
+          }
+        })
+        .finally(() => setIsRequesting(false));
     }
   };
 
@@ -111,5 +147,8 @@ export const useAuthentication = () => {
     submitClicked,
     repeatPassword,
     repeatPasswordError,
+    isRequesting,
+    onFileDownloadClick,
+    response,
   };
 };
