@@ -133,26 +133,14 @@ export const Register = () => {
           {isRequesting && <LinearProgress />}
           {!!response && (
             <Box>
-              <Box>
-                <Fab
-                  aria-label="save"
-                  color="primary"
-                  onClick={() => onFileDownloadClick("key")}
-                >
-                  Key
-                  <SaveIcon />
-                </Fab>
-              </Box>
-              <Box>
-                <Fab
-                  aria-label="save"
-                  color="primary"
-                  onClick={() => onFileDownloadClick("recovery")}
-                >
-                  Recovery Key
-                  <SaveIcon />
-                </Fab>
-              </Box>
+              <Fab
+                aria-label="save"
+                color="primary"
+                onClick={() => onFileDownloadClick("key")}
+              >
+                Key
+                <SaveIcon />
+              </Fab>
             </Box>
           )}
         </Box>

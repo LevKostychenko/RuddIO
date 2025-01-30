@@ -111,6 +111,10 @@ export class ApiService {
     return await this.service.post(this.getUrl(), body);
   }
 
+  public async postForm<TBody>(body?: TBody): Promise<AxiosResponse<any, any>> {
+    return await this.service.postForm(this.getUrl(), body);
+  }
+
   private getUrl(): string {
     let url = this.buildQueryURL(this.params);
     url = this.trimLastAmpersant(url);
