@@ -12,7 +12,7 @@ export class RefreshTokenInterceptor
   implements IInterceptor
 {
   public addInterceptor(instance: AxiosInstance): AxiosInstance {
-    instance.interceptors.request.use(this.checkRefreshingToken);
+    instance.interceptors.request.use(this.checkRefreshingToken.bind(this));
     return instance;
   }
 

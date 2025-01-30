@@ -2,14 +2,18 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RuddIO.Server.Auth.Models;
 using RuddIO.Server.Auth.Services.Abstraction;
+using RuddIO.Server.DB;
+using System;
+using System.Security.Claims;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace RuddIO.Server.Auth.Controllers
 {
     [ApiController]
-    [Route("[controller]/[action]")]
-    public class IdentityController(IUserIdentityService identityService) : ControllerBase
+    [Route("[controller]")]
+    public class IdentityController(IUserIdentityService identityService, RuddIODbContext db) : ControllerBase
     {
-        [HttpPost]
+        [HttpPost("register")]
         [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] Registration registration)
         {
@@ -37,7 +41,7 @@ namespace RuddIO.Server.Auth.Controllers
             });
         }
 
-        [HttpPost]
+        [HttpPost("login")]
         [AllowAnonymous]
         public async Task<IActionResult> Login([FromForm] string password, IFormFile keyFile)
         {
@@ -45,7 +49,7 @@ namespace RuddIO.Server.Auth.Controllers
             return Ok(response);
         }
 
-        [HttpPost]
+        [HttpPost("recover")]
         [AllowAnonymous]
         public async Task<IActionResult> RecoverUser([FromBody] Recovery recovery)
         {
@@ -61,6 +65,22 @@ namespace RuddIO.Server.Auth.Controllers
                 RecoveryKey = newRecoveryKey,
                 KeyFile = keyBase64,
                 FileName = $"key_{recovery.Username}"
+            });
+        }
+
+        [HttpGet("account")]
+        [Authorize]
+        public async Task<IActionResult> GetAccount()
+        {
+            var userId = User.Claims.Single(c => c.Type == ClaimTypes.Actor).Value;
+            var user = await db.Users.FindAsync(Guid.Parse(userId));
+            return Ok(new
+            {
+                TimeZoneId = "",
+                Locale = "en-US",
+                Image = "",
+                Id = userId,
+                user.UserName
             });
         }
     }

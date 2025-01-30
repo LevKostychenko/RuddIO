@@ -48,9 +48,8 @@ export class UnauthorizeResponseInterceptor
           };
 
           const accessToken = await super.getRefreshPromise(authRequestObject);
-          (originalRequest?.headers as any)[
-            "Authorization"
-          ] = `Bearer ${accessToken}`;
+          (originalRequest?.headers as any)["Authorization"] =
+            `Bearer ${accessToken}`;
 
           return instance(originalRequest);
         } catch (refreshError) {

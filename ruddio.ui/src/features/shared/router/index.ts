@@ -28,15 +28,15 @@ export const routes: AppRoutes = {
   account: {
     home: {
       name: "account",
-      path: "account",
+      path: "/account",
     },
     login: {
       name: "account.login",
-      path: "account/login",
+      path: "/account/login",
     },
     regiter: {
       name: "account.register",
-      path: "account/register",
+      path: "/account/register",
     },
   },
 };

@@ -1,0 +1,1 @@
+export { DetectAuth } from "./DetectAuth";

@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { LoadTranslations } from "../LoadTranslations";
 import { AppRoutes } from "../AppRoutes/AppRoutes";
+import { DetectAuth } from "../DetectAuth";
 
 export const AppLayout = () => {
   const { t } = useTranslation(["shared"]);
@@ -12,7 +13,9 @@ export const AppLayout = () => {
 
   return (
     <LoadTranslations onLoaded={translationLoadCallback}>
-      <AppRoutes />
+      <DetectAuth>
+        <AppRoutes />
+      </DetectAuth>
     </LoadTranslations>
   );
 };

@@ -26,20 +26,13 @@ const getInitialState = (): TInitialState => ({
     accessTokenExpiration: localStorage.getItem(ACCESS_TOKEN_EXPIRES_AT),
     refreshTokenExpiration: localStorage.getItem(REFRESH_TOKEN_EXPIRES_AT),
     isLoading: false,
-    email: null,
     userName: null,
-    roles: [],
     locale:
       (localStorage.getItem(USER_LANGUAGE) as TLocale) ||
       (CONFIG.DEFAULT_LANG as TLocale),
     isLocalizationLoading: false,
     image: null,
     id: null,
-    companies: [],
-    phone: null,
-    specialist: null,
-    admin: null,
-    customer: null,
   },
 });
 

@@ -1,7 +1,17 @@
 import ApiContext from "@/features/shared/services/api-context";
+import { signOut, tokenReceived } from "@/features/shared/store/auth";
+import { ITokenInfo } from "@/features/shared/types";
+import { saveAuthorizationInfo } from "@/features/shared/utils";
+import { AxiosResponse } from "axios";
 import { useEffect, useMemo, useState } from "react";
+import { useDispatch } from "react-redux";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export const useLogin = () => {
+  const dispatch = useDispatch();
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [submitClicked, setSubmitClicked] = useState(false);
@@ -45,10 +55,26 @@ export const useLogin = () => {
         })
         .then((response) => {
           if (response.data) {
-            setResponse(response.data);
+            handleSignInResponse(response);
           }
         })
         .finally(() => setIsRequesting(false));
+    }
+  };
+
+  const handleSignInResponse = (resp: AxiosResponse<ITokenInfo, any>) => {
+    if (resp.data && resp.status >= 200 && resp.status < 400) {
+      saveAuthorizationInfo(resp.data);
+      dispatch(tokenReceived(resp.data));
+
+      if (location.state) {
+        navigate(-1);
+      } else {
+        navigate("/");
+      }
+    } else {
+      dispatch(signOut());
+      // TODO: something went wrong
     }
   };
 
